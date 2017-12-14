@@ -1,7 +1,7 @@
 <?php
-namespace MDO;
+namespace MSM;
 
-abstract class DataObject extends \ArrayObject
+abstract class Model extends \ArrayObject
 {
 
 	/**
@@ -252,44 +252,10 @@ abstract class DataObject extends \ArrayObject
 		 * Otherwise it is an UPDATE.
 		 */
 		if ($this->_cleanData === null) {
-			/**
-			 * Run pre-INSERT logic
-			 */
-			$this->_insert();
-			foreach(static::$_plugins as $plugin){
-				$plugin->preDbInsert($this);
-			}
-
 			$result = $this->_doInsert();
-
-			/**
-			 * Run post-INSERT logic
-			 */
-			$this->_postInsert();
-			foreach(static::$_plugins as $plugin){
-				$plugin->postDbInsert($this);
-			}
 		}
 		else {
-			/**
-			 * Run pre-UPDATE logic
-			 */
-			$this->_update();
-			foreach(static::$_plugins as $plugin){
-				$plugin->preDbUpdate($this);
-			}
-
 			$result = $this->_doUpdate();
-
-			/**
-			 * Run post-UPDATE logic.  Do this before the _refresh()
-			 * so the _postUpdate() function can tell the difference
-			 * between changed data and clean (pre-changed) data.
-			 */
-			$this->_postUpdate();
-			foreach(static::$_plugins as $plugin){
-				$plugin->postDbUpdate($this);
-			}
 		}
 
 		/**
@@ -315,23 +281,7 @@ abstract class DataObject extends \ArrayObject
 			throw new DataObjectException('This row has been marked read-only');
 		}
 
-		/**
-		 * Execute pre-DELETE logic
-		 */
-		$this->_delete();
-		foreach(static::$_plugins as $plugin){
-			$plugin->preDbDelete($this);
-		}
-
 		$result = $this->_doDelete();
-
-		/**
-		 * Execute post-DELETE logic
-		 */
-		$this->_postDelete();
-		foreach(static::$_plugins as $plugin){
-			$plugin->postDbDelete($this);
-		}
 
 		return $result;
 	}
@@ -360,66 +310,6 @@ abstract class DataObject extends \ArrayObject
 	public function refresh($real = true)
 	{
 		return $real ? $this->_realRefresh() : $this->_refresh();
-	}
-
-	/**
-	 * Allows pre-insert logic to be applied to row.
-	 * Subclasses may override this method.
-	 *
-	 * @return void
-	 */
-	protected function _insert()
-	{
-	}
-
-	/**
-	 * Allows post-insert logic to be applied to row.
-	 * Subclasses may override this method.
-	 *
-	 * @return void
-	 */
-	protected function _postInsert()
-	{
-	}
-
-	/**
-	 * Allows pre-update logic to be applied to row.
-	 * Subclasses may override this method.
-	 *
-	 * @return void
-	 */
-	protected function _update()
-	{
-	}
-
-	/**
-	 * Allows post-update logic to be applied to row.
-	 * Subclasses may override this method.
-	 *
-	 * @return void
-	 */
-	protected function _postUpdate()
-	{
-	}
-
-	/**
-	 * Allows pre-delete logic to be applied to row.
-	 * Subclasses may override this method.
-	 *
-	 * @return void
-	 */
-	protected function _delete()
-	{
-	}
-
-	/**
-	 * Allows post-delete logic to be applied to row.
-	 * Subclasses may override this method.
-	 *
-	 * @return void
-	 */
-	protected function _postDelete()
-	{
 	}
 
 	abstract protected function _doInsert();

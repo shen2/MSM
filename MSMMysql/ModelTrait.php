@@ -1,5 +1,5 @@
 <?php
-namespace MDO;
+namespace MSM;
 
 trait TableTrait {
     /**
@@ -8,12 +8,6 @@ trait TableTrait {
      */
     protected static $_defaultTable;
 
-    /**
-     * define $_plugins in a trait to ensure every class has an independent $_plugins
-     * @var array
-     */
-    protected static $_plugins = [];
-    
     /**
      * @var Table
      */
@@ -83,84 +77,6 @@ trait TableTrait {
 	public static function selectCol($columns = null)
 	{
 	    return static::getDefaultTable()->selectCol($columns);
-	}
-	
-	/**
-	 * Inserts a new row.
-	 *
-	 * @param  array  $data  Column-value pairs.
-	 * @return mixed		 The primary key of the row inserted.
-	 */
-	public static function insert(array $data)
-	{
-	    return static::getDefaultTable()->insert($data);
-	}
-	
-	/**
-	 * Inserts Delayed a new row.
-	 *
-	 * @param  array  $data  Column-value pairs.
-	 * @return mixed		 The primary key of the row inserted.
-	 */
-	public static function insertDelayed(array $data)
-	{
-	    return static::getDefaultTable()->insertDelayed($data);
-	}
-	
-	/**
-	 * Inserts Ignore a new row.
-	 *
-	 * @param  array  $data  Column-value pairs.
-	 * @return mixed		 The primary key of the row inserted.
-	 */
-	public static function insertIgnore(array $data)
-	{
-	    return static::getDefaultTable()->insertIgnore($data);
-	}
-	
-	/**
-	 * 使用insertOnDuplicateKeyUpdate 插入一条记录，插入后不会refresh
-	 *
-	 * @param  array  $data  Column-value pairs.
-	 * @return mixed		 The primary key of the row inserted.
-	 */
-	public static function insertOrUpdateRow(array $data)
-	{
-	    return static::getDefaultTable()->insertOrUpdateRow($data);
-	}
-	
-	/**
-	 * Inserts Ignore a new row.
-	 *
-	 * @param  array  $data  Column-value pairs.
-	 * @return mixed		 The primary key of the row inserted.
-	 */
-	public static function insertMulti(array $data)
-	{
-	    return static::getDefaultTable()->insertMulti($data);
-	}
-	
-	/**
-	 * Updates existing rows.
-	 *
-	 * @param  array		$data  Column-value pairs.
-	 * @param  array|string $where An SQL WHERE clause, or an array of SQL WHERE clauses.
-	 * @return \mysqli_result
-	 */
-	public static function update(array $data, $where)
-	{
-	    return static::getDefaultTable()->update($data, $where);
-	}
-	
-	/**
-	 * Deletes existing rows.
-	 *
-	 * @param  array|string $where SQL WHERE clause(s).
-	 * @return \mysqli_result
-	 */
-	public static function delete($where)
-	{
-	    return static::getDefaultTable()->delete($where);
 	}
 	
 	/**

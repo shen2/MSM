@@ -1,12 +1,61 @@
 <?php
 namespace MSM;
 
-trait TableTrait {
+trait ModelTrait {
     /**
      * 
      * @var Table
      */
     protected static $_defaultTable;
+
+    /**
+	 * Default adapter object.
+	 *
+	 * @var Adapter
+	 */
+	protected static $_db;
+
+	/**
+	 * The schema name (default null means current schema)
+	 *
+	 * @var array
+	 */
+	protected static $_schema = null;
+
+	/**
+	 * The table name.
+	 *
+	 * @var string
+	 */
+	protected static $_name = null;
+
+	/**
+	 * The primary key column or columns.
+	 * MUST be declared as an array.
+	 *
+	 * @var array
+	 */
+	protected static $_primary = null;
+
+	/**
+	 * If your primary key is a compound key, and one of the columns uses
+	 * an auto-increment or sequence-generated value, set _identity
+	 * to the ordinal index in the $_primary array for that column.
+	 * Note this index is the position of the column in the primary key,
+	 * not the position of the column in the table.  The primary key
+	 * array is 0-based.
+	 *
+	 * @var integer
+	 */
+	protected static $_identity = 0;
+
+	/**
+	 * Define the logic for new values in the primary key.
+	 * May be a string, boolean true, or boolean false.
+	 *
+	 * @var mixed
+	 */
+	protected static $_sequence = true;
 
     /**
      * @var Table
@@ -53,28 +102,16 @@ trait TableTrait {
 	 */
 	public static function createRow(array $data = [])
 	{
-	    return parent::createRow($data)->setTable(static::getDefaultTable());
+	    return static::createRow($data)->setTable(static::getDefaultTable());
 	}
 
-	/* 以下代码是为了向下兼容 */
 	/**
 	 * Returns an instance of a Select object.
 	 *
 	 * @param bool $withFromPart Whether or not to include the from part of the select based on the table
 	 * @return Select
 	 */
-	public static function select($withFromPart = Table::SELECT_WITHOUT_FROM_PART)
-	{
-	    return static::getDefaultTable()->select($withFromPart);
-	}
-	
-	/**
-	 * Returns an instance of a Select object.
-	 *
-	 * @param string|array|Expr $columns
-	 * @return Select
-	 */
-	public static function selectCol($columns = null)
+	public static function select($columns = null)
 	{
 	    return static::getDefaultTable()->selectCol($columns);
 	}
@@ -212,7 +249,7 @@ trait TableTrait {
 	 */
 	protected function _getWhereQuery($useDirty = true)
 	{
-	    $where = array();
+	    $where = [];
 	
 	    $primaryKey = $this->_getPrimaryKey($useDirty);
 	    $db = $this->_table->getAdapter();
@@ -226,22 +263,7 @@ trait TableTrait {
 	    return $where;
 	}
 	
-	/**
-	 * Refreshes properties from the database.
-	 *
-	 * @return void
-	 */
-	protected function _refresh($real = true)
-	{
-	    if ($real){
-	        return $this->_realRefresh();
-	    }
-	
-	    //并不真的从数据库中查询记录，而只是记录当成是全新的
-	    $this->_cleanData = [];
-	}
-	
-	protected function _realRefresh(){
+	public function refresh(){
 	    $where = $this->_getWhereQuery();
 	    $row = $this->_table->select()
 	        ->whereClauses($where)

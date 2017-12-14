@@ -4,55 +4,6 @@ namespace MSM;
 abstract class Model extends \ArrayObject
 {
 
-	/**
-	 * Default adapter object.
-	 *
-	 * @var Adapter
-	 */
-	protected static $_db;
-
-	/**
-	 * The schema name (default null means current schema)
-	 *
-	 * @var array
-	 */
-	protected static $_schema = null;
-
-	/**
-	 * The table name.
-	 *
-	 * @var string
-	 */
-	protected static $_name = null;
-
-	/**
-	 * The primary key column or columns.
-	 * MUST be declared as an array.
-	 *
-	 * @var array
-	 */
-	protected static $_primary = null;
-
-	/**
-	 * If your primary key is a compound key, and one of the columns uses
-	 * an auto-increment or sequence-generated value, set _identity
-	 * to the ordinal index in the $_primary array for that column.
-	 * Note this index is the position of the column in the primary key,
-	 * not the position of the column in the table.  The primary key
-	 * array is 0-based.
-	 *
-	 * @var integer
-	 */
-	protected static $_identity = 0;
-
-	/**
-	 * Define the logic for new values in the primary key.
-	 * May be a string, boolean true, or boolean false.
-	 *
-	 * @var mixed
-	 */
-	protected static $_sequence = true;
-
 	protected static $_defaultValues = [];
 
 	/**
@@ -69,15 +20,7 @@ abstract class Model extends \ArrayObject
 		return $row;
 	}
 
-	/**
-	 * @param $plugin PluginInterface
-	 */
-	public static function registerPlugin($plugin){
-		static::$_plugins[] = $plugin;
-	}
-
 	/*	下面是Object实例		*/
-	const ARRAYOBJECT_FLAGS = 0;//ArrayObject::ARRAY_AS_PROPS;
 
 	/**
 	 * The clean data of dirty fields
@@ -88,15 +31,6 @@ abstract class Model extends \ArrayObject
 	 * @var array
 	 */
 	protected $_cleanData = [];
-
-	/**
-	 * Connected is true if we have a reference to a live
-	 * \MDO\Table_Abstract object.
-	 * This is false after the Rowset has been deserialized.
-	 *
-	 * @var boolean
-	 */
-	protected $_connected = true;
 
 	/**
 	 * A row is marked read only if it contains columns that are not physically represented within
@@ -118,7 +52,7 @@ abstract class Model extends \ArrayObject
 	 * @param  array $config OPTIONAL Array of user-specified config options.
 	 * @param
 	 * @return void
-	 * @throws DataObjectException
+	 * @throws ModelException
 	 */
 	/**
 	 * 
@@ -126,9 +60,9 @@ abstract class Model extends \ArrayObject
 	 * @param boolean $stored
 	 * @param boolean $readOnly
 	 */
-	public function __construct($data = array(), $stored = null, $readOnly = null)
+	public function __construct($data = [], $stored = null, $readOnly = null)
 	{
-		parent::__construct($data, static::ARRAYOBJECT_FLAGS);
+		parent::__construct($data, 0);
 		
 		if (!$stored) {
 			$this->_cleanData = null;
@@ -147,7 +81,7 @@ abstract class Model extends \ArrayObject
 	 * @param  string $columnName The column key.
 	 * @param  mixed  $value	  The value for the property.
 	 * @return void
-	 * @throws DataObjectException
+	 * @throws ModelException
 	 */
 	public function offsetSet($columnName, $value)
 	{
@@ -175,7 +109,6 @@ abstract class Model extends \ArrayObject
 	 */
 	public function __wakeup()
 	{
-		$this->_connected = false;
 	}
 
 	/**
@@ -189,16 +122,6 @@ abstract class Model extends \ArrayObject
 	{
 	}
 
-	/**
-	 * Test the connected status of the row.
-	 *
-	 * @return boolean
-	 */
-	public function isConnected()
-	{
-		return $this->_connected;
-	}
-	
 	public function isModified(){
 		return $this->_cleanData === null || !empty($this->_cleanData); 
 	}
@@ -233,17 +156,17 @@ abstract class Model extends \ArrayObject
 	 * @return mixed The primary key value(s), as an associative array if the
 	 *	 key is compound, or a scalar if the key is single-column.
 	 */
-	public function save($realRefresh = true)
+	public function save()
 	{
 		/**
 		 * A read-only row cannot be saved.
 		 */
 		if ($this->_readOnly === true) {
-			throw new DataObjectException('This row has been marked read-only');
+			throw new ModelException('This row has been marked read-only');
 		}
 
 		if ($this->_cleanData === []){
-			throw new DataObjectException('This row hasn\'t been modified');
+			throw new ModelException('This row hasn\'t been modified');
 		}
 
 		/**
@@ -259,10 +182,9 @@ abstract class Model extends \ArrayObject
 		}
 
 		/**
-		 * Refresh the data just in case triggers in the RDBMS changed
-		 * any columns.  Also this resets the _cleanData.
+		 * 并不真的从数据库中查询记录，而只是记录当成是全新的
 		 */
-		$realRefresh ? $this->_realRefresh() : $this->_refresh();
+	    $this->_cleanData = [];
 
 		return $result;
 	}
@@ -278,7 +200,7 @@ abstract class Model extends \ArrayObject
 		 * A read-only row cannot be deleted.
 		 */
 		if ($this->_readOnly === true) {
-			throw new DataObjectException('This row has been marked read-only');
+			throw new ModelException('This row has been marked read-only');
 		}
 
 		$result = $this->_doDelete();
@@ -305,12 +227,8 @@ abstract class Model extends \ArrayObject
 	/**
 	 * Refreshes properties from the database.
 	 *
-	 * @return void
 	 */
-	public function refresh($real = true)
-	{
-		return $real ? $this->_realRefresh() : $this->_refresh();
-	}
+	abstract public function refresh();
 
 	abstract protected function _doInsert();
 

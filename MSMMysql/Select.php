@@ -38,13 +38,13 @@ class Select extends Query
 	 */
 	protected $_parts = array(
 		self::DISTINCT	 => false,
-		self::COLUMNS	  => array(),
-		self::UNION		=> array(),
-		self::FROM		 => array(),
-		self::WHERE		=> array(),
-		self::GROUP		=> array(),
-		self::HAVING	   => array(),
-		self::ORDER		=> array(),
+		self::COLUMNS	  => [],
+		self::UNION		=> [],
+		self::FROM		 => [],
+		self::WHERE		=> [],
+		self::GROUP		=> [],
+		self::HAVING	   => [],
+		self::ORDER		=> [],
 		self::LIMIT_COUNT  => null,
 		self::LIMIT_OFFSET => null,
 		self::FOR_UPDATE   => false
@@ -169,7 +169,7 @@ class Select extends Query
 	 * @param  array $select Array of select clauses for the union.
 	 * @return Select This Select object.
 	 */
-	public function union($select = array(), $type = self::SQL_UNION)
+	public function union($select = [], $type = self::SQL_UNION)
 	{
 		if (!is_array($select)) {
 			throw new SelectException(
@@ -657,7 +657,7 @@ class Select extends Query
 			if ($type == self::FROM) {
 				// append this from after the last from joinType
 				$tmpFromParts = $this->_parts[self::FROM];
-				$this->_parts[self::FROM] = array();
+				$this->_parts[self::FROM] = [];
 				// move all the froms onto the stack
 				while ($tmpFromParts) {
 					$currentCorrelationName = key($tmpFromParts);
@@ -668,7 +668,7 @@ class Select extends Query
 					$this->_parts[self::FROM][$currentCorrelationName] = array_shift($tmpFromParts);
 				}
 			} else {
-				$tmpFromParts = array();
+				$tmpFromParts = [];
 			}
 			$this->_parts[self::FROM][$correlationName] = array(
 				'joinType'	  => $type,
@@ -772,7 +772,7 @@ class Select extends Query
 			$correlationName = '';
 		}
 
-		$columnValues = array();
+		$columnValues = [];
 
 		foreach (array_filter($cols) as $alias => $col) {
 			$currentCorrelationName = $correlationName;
@@ -798,9 +798,9 @@ class Select extends Query
 			// should we attempt to prepend or insert these values?
 			if ($afterCorrelationName === true || is_string($afterCorrelationName)) {
 				$tmpColumns = $this->_parts[self::COLUMNS];
-				$this->_parts[self::COLUMNS] = array();
+				$this->_parts[self::COLUMNS] = [];
 			} else {
-				$tmpColumns = array();
+				$tmpColumns = [];
 			}
 
 			// find the correlation name to insert after
@@ -878,7 +878,7 @@ class Select extends Query
 			return null;
 		}
 
-		$columns = array();
+		$columns = [];
 		foreach ($this->_parts[self::COLUMNS] as $columnEntry) {
 			list($correlationName, $column, $alias) = $columnEntry;
 			if ($column instanceof Expr) {
@@ -906,7 +906,7 @@ class Select extends Query
 	 */
 	protected function _renderFrom()
 	{
-		$from = array();
+		$from = [];
 
 		foreach ($this->_parts[self::FROM] as $correlationName => $table) {
 			$tmp = '';
@@ -977,7 +977,7 @@ class Select extends Query
 	protected function _renderGroup()
 	{
 		if ($this->_parts[self::FROM] && $this->_parts[self::GROUP]) {
-			$group = array();
+			$group = [];
 			foreach ($this->_parts[self::GROUP] as $term) {
 				$group[] = $this->_adapter->quoteIdentifier($term, true);
 			}
@@ -1009,7 +1009,7 @@ class Select extends Query
 	protected function _renderOrder()
 	{
 		if ($this->_parts[self::ORDER]) {
-			$order = array();
+			$order = [];
 			foreach ($this->_parts[self::ORDER] as $term) {
 				if (is_array($term)) {
 					if(is_numeric($term[0]) && strval(intval($term[0])) == $term[0]) {
@@ -1088,7 +1088,7 @@ class Select extends Query
 	 */
 	public function __call($method, array $args)
 	{
-		$matches = array();
+		$matches = [];
 
 		/**
 		 * Recognize methods for Has-Many cases:
@@ -1203,7 +1203,7 @@ class Select extends Query
 	 * @param array $ctor_args
 	 * @return \Generator
 	 */
-	public function yieldClass($class, $ctor_args = array()){
+	public function yieldClass($class, $ctor_args = []){
 		return $this->_adapter->newStatement($this)->getObjectGenerator($class, $ctor_args);
 	}
 	
@@ -1294,7 +1294,7 @@ class Select extends Query
 	 * @param array $ctor_args
 	 * @return array
 	 */
-	public function fetchClass($class, $ctor_args = array()){
+	public function fetchClass($class, $ctor_args = []){
 		return $this->_adapter->newStatement($this, false)->getObjectArray($class, $ctor_args);
 	}
 	
